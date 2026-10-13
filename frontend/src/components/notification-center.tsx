@@ -27,6 +27,7 @@ import {
   sortNotifications,
   filterNotificationsByCategory,
   generateReminders,
+  showDesktopNotification,
 } from "@/lib/notifications";
 import type {
   NotificationItem,
@@ -64,6 +65,9 @@ export function NotificationBell() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Track notifications already attempted during this mounted session.
+  const sentDesktopReminderIds = useRef<Set<number>>(new Set());
+
   const allNotifications = useMemo(() => {
     const existingIds = new Set(
       data.notifications.map((notification) => notification.id),
@@ -96,6 +100,37 @@ export function NotificationBell() {
   ]);
 
   const unreadCount = countUnread(allNotifications);
+  // Automatically show eligible reminders while the app is open.
+  useEffect(() => {
+    const preferences = data.notificationPreferences;
+
+    if (!preferences.desktopPushEnabled) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    const eligibleReminders = allNotifications.filter(
+      (notification) =>
+        notification.isGeneratedReminder === true &&
+        !notification.read &&
+        !readReminderIds.has(notification.id),
+    );
+
+    for (const notification of eligibleReminders) {
+      if (sentDesktopReminderIds.current.has(notification.id)) continue;
+
+      // Prevent repeated attempts during React effect reruns.
+      sentDesktopReminderIds.current.add(notification.id);
+
+      showDesktopNotification(
+        notification,
+        preferences.discreetMode,
+      );
+    }
+  }, [
+    allNotifications,
+    data.notificationPreferences,
+    readReminderIds,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -186,8 +221,7 @@ const NotificationPanel = forwardRef<HTMLDivElement, PanelProps>(
 
       const generatedReminderIds = notifications
         .filter(
-          (notification) =>
-            notification.id >= 100000 && notification.id < 500000,
+          (notification) => notification.isGeneratedReminder === true,
         )
         .map((notification) => notification.id);
 
@@ -196,7 +230,7 @@ const NotificationPanel = forwardRef<HTMLDivElement, PanelProps>(
 
     function handleMarkRead(notification: NotificationItem) {
       const isGeneratedReminder =
-        notification.id >= 100000 && notification.id < 500000;
+        notification.isGeneratedReminder === true;
 
       if (isGeneratedReminder) {
         markReminderRead(notification.id);

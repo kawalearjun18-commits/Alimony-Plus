@@ -207,6 +207,13 @@ export type NotificationItem = {
   category: NotificationCategory;
   read: boolean;
   linkSection?: string;
+
+  /**
+   * Identifies reminders generated dynamically from calendar events
+   * and submission deadlines. Used to distinguish them from
+   * regular notifications without relying on numeric ID ranges.
+   */
+  isGeneratedReminder?: boolean;
 };
 export type NotificationPreferences = {
   hearingReminders: boolean;
