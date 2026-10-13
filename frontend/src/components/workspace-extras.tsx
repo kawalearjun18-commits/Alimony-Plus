@@ -1,5 +1,5 @@
-"use client";
-import { useState, type FormEvent } from "react";
+﻿"use client";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -22,6 +22,11 @@ import {
   Check,
   Pencil,
   LockKeyhole,
+  Bell,
+  BellRing,
+  Monitor,
+  EyeOff,
+  Send,
 } from "lucide-react";
 import { useWorkspace } from "./workspace-provider";
 import { Badge, Empty, ExternalLink, Field, Modal, PageHeading } from "./ui";
@@ -38,6 +43,12 @@ import {
   type PlanningResult,
 } from "@/lib/planning";
 import type { SourceRecord } from "@/lib/types";
+import {
+  getDesktopPermission,
+  requestDesktopPermission,
+  sendTestNotification,
+  type DesktopPermissionState,
+} from "@/lib/notifications";
 
 export function CalculatorView() {
   const { demo, data, selectedCase } = useWorkspace();
@@ -147,7 +158,7 @@ export function CalculatorView() {
                   }
                 >
                   <div className="currency-input">
-                    <span>₹</span>
+                    <span>â‚¹</span>
                     <input
                       name={key}
                       type="number"
@@ -393,7 +404,7 @@ export function DataReviewView({
                       {s.kind === "Financial fact" ? (
                         <>
                           {s.certainty === "Unknown"
-                            ? "Unknown — not zero"
+                            ? "Unknown â€” not zero"
                             : `${money(Number(s.value))} / ${s.frequency.toLowerCase()}`}
                           <small>{s.certainty}</small>
                         </>
@@ -500,10 +511,10 @@ export function HelpView() {
           <h2>
             You bring your questions.
             <br />
-            You don’t need all the answers.
+            You donâ€™t need all the answers.
           </h2>
           <p>
-            Organise what you know, keep a note of what you don’t, and ask for
+            Organise what you know, keep a note of what you donâ€™t, and ask for
             guidance on your situation.
           </p>
           <ExternalLink href="https://nalsa.gov.in/">
@@ -517,7 +528,7 @@ export function HelpView() {
           <Scale size={24} />
           <h2>Legal-aid resources</h2>
           <p>
-            Visit the National Legal Services Authority’s official website for
+            Visit the National Legal Services Authorityâ€™s official website for
             legal-services information and state or district contacts.
           </p>
           <ExternalLink href="https://nalsa.gov.in/">Visit NALSA</ExternalLink>
@@ -572,8 +583,42 @@ export function HelpView() {
 }
 
 export function SettingsView() {
-  const { demo, resetDemo, logout, setNotice } = useWorkspace();
+  const { demo, data, resetDemo, logout, setNotice, updateNotificationPreferences } =
+    useWorkspace();
+  const prefs = data.notificationPreferences;
   const [confirm, setConfirm] = useState(false);
+  const [permState, setPermState] = useState<DesktopPermissionState>("default");
+
+  // Check permission state on mount (client only)
+  useEffect(() => {
+    setPermState(getDesktopPermission());
+  }, []);
+
+  async function handleRequestPermission() {
+    const result = await requestDesktopPermission();
+    setPermState(result);
+    if (result === "granted") {
+      updateNotificationPreferences({ desktopPushEnabled: true });
+      setNotice("Desktop notifications enabled.");
+    } else if (result === "denied") {
+      updateNotificationPreferences({ desktopPushEnabled: false });
+      setNotice(
+        "Permission denied. You can re-enable notifications in your browser settings.",
+      );
+    }
+  }
+
+  function handleTestNotification() {
+    const sent = sendTestNotification(prefs.discreetMode);
+    if (sent) {
+      setNotice("Test notification sent.");
+    } else {
+      setNotice(
+        "Could not send test notification. Check your browser permissions.",
+      );
+    }
+  }
+
   return (
     <>
       <PageHeading
@@ -608,7 +653,7 @@ export function SettingsView() {
         </div>
         <div className="settings-row">
           <div>
-            <h2>Language & accessibility</h2>
+            <h2>Language &amp; accessibility</h2>
             <p>
               This release uses English interface copy, keyboard-accessible
               controls and readable status labels. Hindi and Hinglish interface
@@ -633,7 +678,7 @@ export function SettingsView() {
             <h2>{demo ? "Reset demo workspace" : "Sign out"}</h2>
             <p>
               {demo
-                ? "Discard this session’s changes and return to the synthetic sample records."
+                ? "Discard this session's changes and return to the synthetic sample records."
                 : "Clear the session and return to the sign-in screen."}
             </p>
           </div>
@@ -650,6 +695,223 @@ export function SettingsView() {
           </button>
         </div>
       </section>
+
+      <section className="panel settings-panel mt-6">
+        <div className="settings-section-header">
+          <Bell size={20} />
+          <h2>Notification preferences</h2>
+        </div>
+        <p className="muted mb-4">
+          Choose which reminders appear in your notification centre. Reminders
+          are generated from your calendar events and submission deadlines â€”
+          no background service or push server is used.
+        </p>
+
+        <div className="settings-row">
+          <div>
+            <h2>Hearing reminders</h2>
+            <p>
+              Get notified about upcoming court hearings within your configured
+              lead time.
+            </p>
+          </div>
+          <label className="toggle" aria-label="Toggle hearing reminders">
+            <input
+              type="checkbox"
+              checked={prefs.hearingReminders}
+              onChange={(e) =>
+                updateNotificationPreferences({
+                  hearingReminders: e.target.checked,
+                })
+              }
+            />
+            <span className="toggle-track" />
+          </label>
+        </div>
+
+        <div className="settings-row">
+          <div>
+            <h2>Summons return date alerts</h2>
+            <p>
+              Receive reminders when a summons returnable date is approaching.
+            </p>
+          </div>
+          <label className="toggle" aria-label="Toggle summons alerts">
+            <input
+              type="checkbox"
+              checked={prefs.summonsAlerts}
+              onChange={(e) =>
+                updateNotificationPreferences({
+                  summonsAlerts: e.target.checked,
+                })
+              }
+            />
+            <span className="toggle-track" />
+          </label>
+        </div>
+
+        <div className="settings-row">
+          <div>
+            <h2>Order deadline alerts</h2>
+            <p>
+              Be reminded of filing deadlines and court order compliance dates.
+            </p>
+          </div>
+          <label className="toggle" aria-label="Toggle deadline alerts">
+            <input
+              type="checkbox"
+              checked={prefs.deadlineAlerts}
+              onChange={(e) =>
+                updateNotificationPreferences({
+                  deadlineAlerts: e.target.checked,
+                })
+              }
+            />
+            <span className="toggle-track" />
+          </label>
+        </div>
+
+        <div className="settings-row">
+          <div>
+            <h2>Reminder lead time</h2>
+            <p>
+              Number of days before an event to show reminders.
+            </p>
+          </div>
+          <select
+            className="compact-select"
+            value={prefs.leadDays}
+            onChange={(e) =>
+              updateNotificationPreferences({
+                leadDays: Number(e.target.value),
+              })
+            }
+            aria-label="Reminder lead days"
+          >
+            {[1, 2, 3, 5, 7, 14].map((d) => (
+              <option key={d} value={d}>
+                {d} day{d !== 1 ? "s" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      <section className="panel settings-panel mt-6">
+        <div className="settings-section-header">
+          <Monitor size={20} />
+          <h2>Desktop notifications</h2>
+        </div>
+        <p className="muted mb-4">
+          Receive browser notifications for upcoming events. Permission is
+          requested only when you explicitly enable this feature. No background
+          push server is used â€” notifications appear only while the app is open.
+        </p>
+
+        <div className="settings-row">
+          <div>
+            <h2>Desktop notifications</h2>
+            <p>
+              {permState === "unsupported"
+                ? "Your browser does not support desktop notifications."
+                : permState === "denied"
+                  ? "Notification permission was denied. Re-enable in your browser's site settings."
+                  : permState === "granted"
+                    ? "Desktop notifications are enabled."
+                    : "Click enable to grant notification permission."}
+            </p>
+          </div>
+          {permState === "unsupported" ? (
+            <span className="badge amber">Unsupported</span>
+          ) : permState === "denied" ? (
+            <span className="badge amber">Denied</span>
+          ) : permState === "granted" ? (
+            <label className="toggle" aria-label="Toggle desktop notifications">
+              <input
+                type="checkbox"
+                checked={prefs.desktopPushEnabled}
+                onChange={(e) =>
+                  updateNotificationPreferences({
+                    desktopPushEnabled: e.target.checked,
+                  })
+                }
+              />
+              <span className="toggle-track" />
+            </label>
+          ) : (
+            <button
+              className="button secondary compact"
+              onClick={handleRequestPermission}
+            >
+              <BellRing size={15} />
+              Enable
+            </button>
+          )}
+        </div>
+
+        {permState === "granted" && (
+          <div className="settings-row">
+            <div>
+              <h2>Send test notification</h2>
+              <p>
+                Verify that desktop notifications are working on your device.
+              </p>
+            </div>
+            <button
+              className="button secondary compact"
+              onClick={handleTestNotification}
+            >
+              <Send size={15} />
+              Test
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section className="panel settings-panel mt-6">
+        <div className="settings-section-header">
+          <EyeOff size={20} />
+          <h2>Privacy &amp; discretion</h2>
+        </div>
+        <p className="muted mb-4">
+          Discreet mode hides sensitive case details from desktop notification
+          text. This is especially important if others can see your screen or
+          notification previews.
+        </p>
+
+        <div className="settings-row">
+          <div>
+            <h2>Discreet notification mode</h2>
+            <p>
+              {prefs.discreetMode
+                ? "Desktop notifications will show generic messages without case names or legal details."
+                : "Desktop notifications will include case-specific details. Enable discreet mode if others may see your screen."}
+            </p>
+          </div>
+          <label className="toggle" aria-label="Toggle discreet mode">
+            <input
+              type="checkbox"
+              checked={prefs.discreetMode}
+              onChange={(e) =>
+                updateNotificationPreferences({
+                  discreetMode: e.target.checked,
+                })
+              }
+            />
+            <span className="toggle-track" />
+          </label>
+        </div>
+
+        <div className="callout mt-4">
+          <EyeOff size={16} />
+          <span>
+            Discreet mode is enabled by default to protect your privacy.
+            Desktop notifications never contain full case records or financial
+            details regardless of this setting.
+          </span>
+        </div>
+      </section>
+
       {confirm && (
         <Modal
           title="Reset the demo?"
@@ -678,6 +940,7 @@ export function SettingsView() {
     </>
   );
 }
+
 
 export function LoginView() {
   const { enterLive, resetDemo } = useWorkspace();

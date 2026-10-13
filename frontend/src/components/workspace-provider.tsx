@@ -24,9 +24,9 @@ import type {
   CaseDiaryEntry,
   LegalSubmission,
   ActionItem,
-  NotificationItem,
   NotificationPreferences,
 } from "@/lib/types";
+
 export const defaultPreferences: NotificationPreferences = {
   hearingReminders: true,
   summonsAlerts: true,
@@ -35,6 +35,7 @@ export const defaultPreferences: NotificationPreferences = {
   desktopPushEnabled: false,
   discreetMode: true,
 };
+
 const empty = (): Workspace => ({
   cases: [],
   proceedings: [],
@@ -52,6 +53,7 @@ const empty = (): Workspace => ({
   notifications: [],
   notificationPreferences: defaultPreferences,
 });
+
 type Context = {
   data: Workspace;
   demo: boolean;
@@ -93,14 +95,22 @@ type Context = {
   deleteActionItem: (id: number) => void;
   markNotificationRead: (id: number) => void;
   markAllNotificationsRead: () => void;
+  readReminderIds: Set<number>;
+  markReminderRead: (id: number) => void;
+  markAllRemindersRead: (ids: number[]) => void;
   updateNotificationPreferences: (
     patch: Partial<NotificationPreferences>,
   ) => void;
 };
+
 const Store = createContext<Context | null>(null);
+
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const requestGeneration = useRef(0);
   const [data, setData] = useState<Workspace>(demoWorkspace);
+  const [readReminderIds, setReadReminderIds] = useState<Set<number>>(
+    () => new Set<number>(),
+  );
   const [demo, setDemo] = useState(true);
   const [name, setName] = useState("Meera");
   const [loading, setLoading] = useState(false);
@@ -108,6 +118,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState("");
   const [selectedCase, setSelectedCase] = useState(0);
   const router = useRouter();
+
   const loadLive = useCallback(async () => {
     const generation = ++requestGeneration.current;
     setLoading(true);
@@ -139,37 +150,45 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       )
         .flatMap((r) => r.payments)
         .map((p) => ({ ...p, amount: Number(p.amount) }));
-      if (generation === requestGeneration.current)
+      if (generation === requestGeneration.current) {
         setData((prev) => ({ ...prev, cases, proceedings, orders, payments }));
+      }
     } catch (err) {
-      if (generation === requestGeneration.current)
+      if (generation === requestGeneration.current) {
         setError((err as Error).message);
+      }
     } finally {
       if (generation === requestGeneration.current) setLoading(false);
     }
   }, []);
+
   async function enterLive(userName: string) {
     setDemo(false);
     setName(userName);
     setData(empty());
+    setReadReminderIds(new Set<number>());
     setSelectedCase(0);
     await loadLive();
   }
+
   function resetDemo() {
     requestGeneration.current++;
     setLoading(false);
     setDemo(true);
     setName("Meera");
     setData(demoWorkspace());
+    setReadReminderIds(new Set<number>());
     setSelectedCase(0);
     setError("");
     setNotice("Demo reset. All records are synthetic.");
   }
+
   async function logout() {
     if (!demo) await api("auth/logout", {});
     resetDemo();
     router.push("/login");
   }
+
   // Live records remain in memory only. Clear them after 15 minutes without activity.
   useEffect(() => {
     if (demo) return;
@@ -181,10 +200,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           requestGeneration.current++;
           setLoading(false);
           setData(empty());
+          setReadReminderIds(new Set<number>());
           setDemo(true);
           setName("Guest");
           setNotice("Your session was cleared after inactivity.");
-          void api("auth/logout", {}).catch(() => {});
+          void api("auth/logout", {}).catch(() => { });
           router.push("/login");
         },
         15 * 60 * 1000,
@@ -199,6 +219,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("keydown", reset);
     };
   }, [demo, router]);
+
   async function create(
     kind: "cases" | "proceedings" | "orders" | "payments",
     body: Record<string, unknown>,
@@ -221,6 +242,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Record saved.",
     );
   }
+
   function addMilestone(milestone: Omit<MilestoneEvent, "id">) {
     const record: MilestoneEvent = { ...milestone, id: Date.now() };
     setData((prev) => ({
@@ -233,6 +255,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Milestone added in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function addCalendarEvent(event: Omit<CalendarEvent, "id">) {
     const record: CalendarEvent = { ...event, id: Date.now() };
     setData((prev) => ({
@@ -245,6 +268,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Calendar event added in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function updateCalendarEvent(id: number, patch: Partial<CalendarEvent>) {
     setData((prev) => ({
       ...prev,
@@ -254,6 +278,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Calendar event updated.");
   }
+
   function deleteCalendarEvent(id: number) {
     setData((prev) => ({
       ...prev,
@@ -261,6 +286,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Calendar event removed.");
   }
+
   function addBenchAssignment(bench: Omit<BenchAssignment, "id">) {
     const record: BenchAssignment = { ...bench, id: Date.now() };
     setData((prev) => ({
@@ -273,6 +299,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Bench assignment added in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function addDiaryEntry(entry: Omit<CaseDiaryEntry, "id" | "updatedAt">) {
     const record: CaseDiaryEntry = {
       ...entry,
@@ -289,6 +316,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Diary note added in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function updateDiaryEntry(id: number, patch: Partial<CaseDiaryEntry>) {
     setData((prev) => ({
       ...prev,
@@ -304,6 +332,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Diary note updated in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function deleteDiaryEntry(id: number) {
     setData((prev) => ({
       ...prev,
@@ -311,6 +340,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Diary note removed.");
   }
+
   function addSubmission(submission: Omit<LegalSubmission, "id">) {
     const record: LegalSubmission = { ...submission, id: Date.now() };
     setData((prev) => ({
@@ -323,6 +353,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Submission added in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function updateSubmissionStatus(
     id: number,
     status: LegalSubmission["status"],
@@ -335,6 +366,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Submission status updated.");
   }
+
   function updateSubmission(id: number, patch: Partial<LegalSubmission>) {
     setData((prev) => ({
       ...prev,
@@ -344,6 +376,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Legal submission updated.");
   }
+
   function deleteSubmission(id: number) {
     setData((prev) => ({
       ...prev,
@@ -351,6 +384,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Submission removed.");
   }
+
   function addActionItem(item: Omit<ActionItem, "id">) {
     const record: ActionItem = { ...item, id: Date.now() };
     setData((prev) => ({
@@ -363,6 +397,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Action item added in-memory. Case service backend persistence is not yet available.",
     );
   }
+
   function toggleActionItem(id: number) {
     const curDate = demo ? DEMO_DATE : today();
     setData((prev) => ({
@@ -370,14 +405,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       actionItems: prev.actionItems.map((item) =>
         item.id === id
           ? {
-              ...item,
-              completed: !item.completed,
-              completedAt: !item.completed ? curDate : undefined,
-            }
+            ...item,
+            completed: !item.completed,
+            completedAt: !item.completed ? curDate : undefined,
+          }
           : item,
       ),
     }));
   }
+
   function updateActionItem(id: number, patch: Partial<ActionItem>) {
     setData((prev) => ({
       ...prev,
@@ -387,6 +423,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Action item updated.");
   }
+
   function deleteActionItem(id: number) {
     setData((prev) => ({
       ...prev,
@@ -394,20 +431,46 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Action item removed.");
   }
+
   function markNotificationRead(id: number) {
     setData((prev) => ({
       ...prev,
-      notifications: prev.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n,
+      notifications: prev.notifications.map((notification) =>
+        notification.id === id
+          ? { ...notification, read: true }
+          : notification,
       ),
     }));
   }
+
   function markAllNotificationsRead() {
     setData((prev) => ({
       ...prev,
-      notifications: prev.notifications.map((n) => ({ ...n, read: true })),
+      notifications: prev.notifications.map((notification) => ({
+        ...notification,
+        read: true,
+      })),
     }));
   }
+
+  function markReminderRead(id: number) {
+    setReadReminderIds((previous) => {
+      const next = new Set(previous);
+      next.add(id);
+      return next;
+    });
+  }
+
+  function markAllRemindersRead(ids: number[]) {
+    setReadReminderIds((previous) => {
+      const next = new Set(previous);
+      for (const id of ids) {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
   function updateNotificationPreferences(
     patch: Partial<NotificationPreferences>,
   ) {
@@ -420,6 +483,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Notification preferences updated.");
   }
+
   return (
     <Store.Provider
       value={{
@@ -457,6 +521,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         deleteActionItem,
         markNotificationRead,
         markAllNotificationsRead,
+        readReminderIds,
+        markReminderRead,
+        markAllRemindersRead,
         updateNotificationPreferences,
       }}
     >
@@ -464,6 +531,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     </Store.Provider>
   );
 }
+
 export function useWorkspace() {
   const store = useContext(Store);
   if (!store) throw new Error("WorkspaceProvider is required");

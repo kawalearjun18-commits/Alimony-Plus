@@ -47,6 +47,7 @@ import {
 } from "./workspace-extras";
 import { CaseTimeline } from "./case-timeline";
 import { CaseDiary } from "./case-diary";
+import { NotificationBell } from "./notification-center";
 
 const nav = [
   { id: "dashboard", title: "Overview", icon: LayoutDashboard },
@@ -330,6 +331,7 @@ export function WorkspaceApp({ section }: { section: string }) {
             <strong>{pageTitles[section]}</strong>
           </div>
           <div className="topbar-actions">
+            <NotificationBell />
             <span className="privacy-label">
               <ShieldCheck size={15} />
               {demo ? "Synthetic demo" : "Private workspace"}
