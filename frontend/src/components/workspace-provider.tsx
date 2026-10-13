@@ -18,7 +18,23 @@ import type {
   Proceeding,
   Order,
   Payment,
+  MilestoneEvent,
+  CalendarEvent,
+  BenchAssignment,
+  CaseDiaryEntry,
+  LegalSubmission,
+  ActionItem,
+  NotificationItem,
+  NotificationPreferences,
 } from "@/lib/types";
+export const defaultPreferences: NotificationPreferences = {
+  hearingReminders: true,
+  summonsAlerts: true,
+  deadlineAlerts: true,
+  leadDays: 3,
+  desktopPushEnabled: false,
+  discreetMode: true,
+};
 const empty = (): Workspace => ({
   cases: [],
   proceedings: [],
@@ -27,6 +43,14 @@ const empty = (): Workspace => ({
   hearings: [],
   documents: [],
   sources: [],
+  milestones: [],
+  calendarEvents: [],
+  benchAssignments: [],
+  diaryEntries: [],
+  submissions: [],
+  actionItems: [],
+  notifications: [],
+  notificationPreferences: defaultPreferences,
 });
 type Context = {
   data: Workspace;
@@ -48,6 +72,24 @@ type Context = {
     kind: "cases" | "proceedings" | "orders" | "payments",
     body: Record<string, unknown>,
   ) => Promise<void>;
+  addMilestone: (milestone: Omit<MilestoneEvent, "id">) => void;
+  addCalendarEvent: (event: Omit<CalendarEvent, "id">) => void;
+  addBenchAssignment: (bench: Omit<BenchAssignment, "id">) => void;
+  addDiaryEntry: (entry: Omit<CaseDiaryEntry, "id" | "updatedAt">) => void;
+  updateDiaryEntry: (id: number, patch: Partial<CaseDiaryEntry>) => void;
+  deleteDiaryEntry: (id: number) => void;
+  addSubmission: (submission: Omit<LegalSubmission, "id">) => void;
+  updateSubmissionStatus: (
+    id: number,
+    status: LegalSubmission["status"],
+  ) => void;
+  addActionItem: (item: Omit<ActionItem, "id">) => void;
+  toggleActionItem: (id: number) => void;
+  markNotificationRead: (id: number) => void;
+  markAllNotificationsRead: () => void;
+  updateNotificationPreferences: (
+    patch: Partial<NotificationPreferences>,
+  ) => void;
 };
 const Store = createContext<Context | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
@@ -173,6 +215,157 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Record saved.",
     );
   }
+  function addMilestone(milestone: Omit<MilestoneEvent, "id">) {
+    const record: MilestoneEvent = { ...milestone, id: Date.now() };
+    setData((prev) => ({
+      ...prev,
+      milestones: [...prev.milestones, record],
+    }));
+    setNotice(
+      demo
+        ? "Milestone saved in this demo session."
+        : "Milestone added in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function addCalendarEvent(event: Omit<CalendarEvent, "id">) {
+    const record: CalendarEvent = { ...event, id: Date.now() };
+    setData((prev) => ({
+      ...prev,
+      calendarEvents: [...prev.calendarEvents, record],
+    }));
+    setNotice(
+      demo
+        ? "Calendar event saved in this demo session."
+        : "Calendar event added in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function addBenchAssignment(bench: Omit<BenchAssignment, "id">) {
+    const record: BenchAssignment = { ...bench, id: Date.now() };
+    setData((prev) => ({
+      ...prev,
+      benchAssignments: [...prev.benchAssignments, record],
+    }));
+    setNotice(
+      demo
+        ? "Bench assignment recorded in this demo session."
+        : "Bench assignment added in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function addDiaryEntry(entry: Omit<CaseDiaryEntry, "id" | "updatedAt">) {
+    const record: CaseDiaryEntry = {
+      ...entry,
+      id: Date.now(),
+      updatedAt: demo ? DEMO_DATE : today(),
+    };
+    setData((prev) => ({
+      ...prev,
+      diaryEntries: [record, ...prev.diaryEntries],
+    }));
+    setNotice(
+      demo
+        ? "Diary note saved in this demo session."
+        : "Diary note added in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function updateDiaryEntry(id: number, patch: Partial<CaseDiaryEntry>) {
+    setData((prev) => ({
+      ...prev,
+      diaryEntries: prev.diaryEntries.map((e) =>
+        e.id === id
+          ? { ...e, ...patch, updatedAt: demo ? DEMO_DATE : today() }
+          : e,
+      ),
+    }));
+    setNotice(
+      demo
+        ? "Diary note updated."
+        : "Diary note updated in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function deleteDiaryEntry(id: number) {
+    setData((prev) => ({
+      ...prev,
+      diaryEntries: prev.diaryEntries.filter((e) => e.id !== id),
+    }));
+    setNotice("Diary note removed.");
+  }
+  function addSubmission(submission: Omit<LegalSubmission, "id">) {
+    const record: LegalSubmission = { ...submission, id: Date.now() };
+    setData((prev) => ({
+      ...prev,
+      submissions: [...prev.submissions, record],
+    }));
+    setNotice(
+      demo
+        ? "Legal submission recorded in this demo session."
+        : "Submission added in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function updateSubmissionStatus(
+    id: number,
+    status: LegalSubmission["status"],
+  ) {
+    setData((prev) => ({
+      ...prev,
+      submissions: prev.submissions.map((s) =>
+        s.id === id ? { ...s, status } : s,
+      ),
+    }));
+    setNotice("Submission status updated.");
+  }
+  function addActionItem(item: Omit<ActionItem, "id">) {
+    const record: ActionItem = { ...item, id: Date.now() };
+    setData((prev) => ({
+      ...prev,
+      actionItems: [...prev.actionItems, record],
+    }));
+    setNotice(
+      demo
+        ? "Action item saved in this demo session."
+        : "Action item added in-memory. Case service backend persistence is not yet available.",
+    );
+  }
+  function toggleActionItem(id: number) {
+    const curDate = demo ? DEMO_DATE : today();
+    setData((prev) => ({
+      ...prev,
+      actionItems: prev.actionItems.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              completed: !item.completed,
+              completedAt: !item.completed ? curDate : undefined,
+            }
+          : item,
+      ),
+    }));
+  }
+  function markNotificationRead(id: number) {
+    setData((prev) => ({
+      ...prev,
+      notifications: prev.notifications.map((n) =>
+        n.id === id ? { ...n, read: true } : n,
+      ),
+    }));
+  }
+  function markAllNotificationsRead() {
+    setData((prev) => ({
+      ...prev,
+      notifications: prev.notifications.map((n) => ({ ...n, read: true })),
+    }));
+  }
+  function updateNotificationPreferences(
+    patch: Partial<NotificationPreferences>,
+  ) {
+    setData((prev) => ({
+      ...prev,
+      notificationPreferences: {
+        ...prev.notificationPreferences,
+        ...patch,
+      },
+    }));
+    setNotice("Notification preferences updated.");
+  }
   return (
     <Store.Provider
       value={{
@@ -192,6 +385,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         resetDemo,
         logout,
         create,
+        addMilestone,
+        addCalendarEvent,
+        addBenchAssignment,
+        addDiaryEntry,
+        updateDiaryEntry,
+        deleteDiaryEntry,
+        addSubmission,
+        updateSubmissionStatus,
+        addActionItem,
+        toggleActionItem,
+        markNotificationRead,
+        markAllNotificationsRead,
+        updateNotificationPreferences,
       }}
     >
       {children}

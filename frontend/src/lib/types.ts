@@ -65,6 +65,157 @@ export type SourceRecord = {
   frequency: "Monthly" | "Annual" | "One-time" | "Not applicable";
   certainty: "Known" | "Estimated" | "Unknown";
 };
+export type MilestoneStage =
+  | "Filing"
+  | "Summons & Notice"
+  | "Interim Application"
+  | "Pleadings"
+  | "Evidence"
+  | "Arguments"
+  | "Final Order";
+export type MilestoneStatus =
+  | "Completed"
+  | "In progress"
+  | "Scheduled"
+  | "Adjourned";
+export type MilestoneEvent = {
+  id: number;
+  caseId: number;
+  date: string;
+  title: string;
+  stage: MilestoneStage;
+  status: MilestoneStatus;
+  description?: string;
+  courtroom?: string;
+  orderId?: number;
+  documentId?: number;
+  notes?: string;
+};
+export type CalendarEventType =
+  | "Hearing"
+  | "Summons return"
+  | "Order deadline";
+export type CalendarEventStatus =
+  | "Scheduled"
+  | "Completed"
+  | "Adjourned"
+  | "Pending";
+export type CalendarEvent = {
+  id: number;
+  caseId: number;
+  date: string;
+  time?: string;
+  title: string;
+  eventType: CalendarEventType;
+  location?: string;
+  description?: string;
+  status: CalendarEventStatus;
+  reminderDays?: number;
+};
+export type BenchType = "Single Bench" | "Division Bench";
+export type BenchStatus = "Active" | "Transferred" | "Retired";
+export type BenchAssignment = {
+  id: number;
+  caseId: number;
+  proceedingId?: number;
+  courtName: string;
+  courtroom: string;
+  judgeName: string;
+  benchType: BenchType;
+  assignedDate: string;
+  transferredDate?: string;
+  status: BenchStatus;
+  presidingNotes?: string;
+};
+export type DiaryCategory =
+  | "Court proceeding"
+  | "Counsel meeting"
+  | "Evidence note"
+  | "Personal diary";
+export type CaseDiaryEntry = {
+  id: number;
+  caseId: number;
+  entryDate: string;
+  title: string;
+  content: string;
+  tags: string[];
+  category: DiaryCategory;
+  isPrivate?: boolean;
+  author?: string;
+  updatedAt?: string;
+};
+export type SubmissionType =
+  | "Petition"
+  | "Interim application"
+  | "Affidavit of assets"
+  | "Written statement"
+  | "Rejoinder"
+  | "Evidence affidavit"
+  | "Written arguments";
+export type SubmissionStatus =
+  | "Drafted"
+  | "Filed"
+  | "Served"
+  | "Objected"
+  | "Taken on record";
+export type LegalSubmission = {
+  id: number;
+  caseId: number;
+  proceedingId?: number;
+  title: string;
+  submissionType: SubmissionType;
+  filingDate: string;
+  filedBy: "Applicant" | "Respondent" | "Court";
+  courtFilingNumber?: string;
+  status: SubmissionStatus;
+  documentId?: number;
+  responseDeadline?: string;
+  notes?: string;
+};
+export type ActionItemPriority = "High" | "Medium" | "Normal";
+export type ActionItemCategory =
+  | "Document prep"
+  | "Affidavit filing"
+  | "Court appearance"
+  | "Compliance"
+  | "Other";
+export type ActionItem = {
+  id: number;
+  caseId: number;
+  title: string;
+  description?: string;
+  category: ActionItemCategory;
+  dueDate: string;
+  priority: ActionItemPriority;
+  completed: boolean;
+  completedAt?: string;
+  linkedCalendarEventId?: number;
+};
+export type NotificationCategory =
+  | "Hearing"
+  | "Summons"
+  | "Deadline"
+  | "Compliance"
+  | "System";
+export type NotificationItem = {
+  id: number;
+  caseId?: number;
+  title: string;
+  message: string;
+  discreetMessage?: string;
+  timestamp: string;
+  category: NotificationCategory;
+  read: boolean;
+  linkSection?: string;
+};
+export type NotificationPreferences = {
+  hearingReminders: boolean;
+  summonsAlerts: boolean;
+  deadlineAlerts: boolean;
+  leadDays: number;
+  desktopPushEnabled: boolean;
+  discreetMode: boolean;
+};
 export type Workspace = {
   cases: CaseRecord[];
   proceedings: Proceeding[];
@@ -73,6 +224,14 @@ export type Workspace = {
   hearings: Hearing[];
   documents: DocumentRecord[];
   sources: SourceRecord[];
+  milestones: MilestoneEvent[];
+  calendarEvents: CalendarEvent[];
+  benchAssignments: BenchAssignment[];
+  diaryEntries: CaseDiaryEntry[];
+  submissions: LegalSubmission[];
+  actionItems: ActionItem[];
+  notifications: NotificationItem[];
+  notificationPreferences: NotificationPreferences;
 };
 export type LedgerRow = {
   orderId: number;

@@ -45,10 +45,14 @@ import {
   LoginView,
   SettingsView,
 } from "./workspace-extras";
+import { CaseTimeline } from "./case-timeline";
+import { CaseDiary } from "./case-diary";
 
 const nav = [
   { id: "dashboard", title: "Overview", icon: LayoutDashboard },
   { id: "cases", title: "My cases", icon: FolderHeart },
+  { id: "timeline", title: "Court timeline", icon: Clock3 },
+  { id: "diary", title: "Case diary", icon: BookOpen },
   { id: "orders", title: "Court orders", icon: Scale },
   { id: "payments", title: "Maintenance", icon: Wallet },
   { id: "documents", title: "Documents", icon: Files },
@@ -57,6 +61,8 @@ const nav = [
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
   cases: "My cases",
+  timeline: "Court timeline",
+  diary: "Case diary",
   orders: "Court orders",
   payments: "Maintenance",
   documents: "Documents",
@@ -241,6 +247,12 @@ export function WorkspaceApp({ section }: { section: string }) {
               {item.title}
               {item.id === "cases" && (
                 <span className="nav-count">{data.cases.length}</span>
+              )}
+              {item.id === "timeline" && (
+                <span className="nav-count">{data.milestones.length}</span>
+              )}
+              {item.id === "diary" && (
+                <span className="nav-count">{data.diaryEntries.length}</span>
               )}
             </Link>
           ))}
@@ -760,7 +772,25 @@ export function WorkspaceApp({ section }: { section: string }) {
                               router.push("/orders");
                             }}
                           >
-                            View orders <ArrowRight size={15} />
+                            Orders <ArrowRight size={15} />
+                          </button>
+                          <button
+                            className="text-link"
+                            onClick={() => {
+                              setSelectedCase(c.id);
+                              router.push("/timeline");
+                            }}
+                          >
+                            Timeline <ArrowRight size={15} />
+                          </button>
+                          <button
+                            className="text-link"
+                            onClick={() => {
+                              setSelectedCase(c.id);
+                              router.push("/diary");
+                            }}
+                          >
+                            Diary <ArrowRight size={15} />
                           </button>
                           {demo && (
                             <button
@@ -794,6 +824,8 @@ export function WorkspaceApp({ section }: { section: string }) {
               )}
             </>
           )}
+          {section === "timeline" && <CaseTimeline />}
+          {section === "diary" && <CaseDiary />}
           {section === "orders" && (
             <>
               <PageHeading

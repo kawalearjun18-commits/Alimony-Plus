@@ -2441,3 +2441,408 @@ td small {
 .table-scroll {
   position: relative;
 }
+
+/* Phase 2: Interactive Legal Timeline, Diary, and Bench History styles */
+.timeline-view-switcher {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.view-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.view-switch-btn:hover {
+  background: #f0f4ea;
+  color: var(--ink);
+}
+.view-switch-btn.active {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+
+.timeline-interactive-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+.timeline-milestone-card {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+.timeline-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 24px;
+  flex-shrink: 0;
+}
+.milestone-status-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid var(--cream);
+  box-shadow: 0 0 0 1px var(--border);
+  margin-top: 14px;
+  background: #8e9b86;
+  flex-shrink: 0;
+  z-index: 2;
+}
+.milestone-status-pin.completed {
+  background: #2e6955;
+  box-shadow: 0 0 0 2px #2e6955;
+}
+.milestone-status-pin.in-progress {
+  background: #c68936;
+  box-shadow: 0 0 0 2px #c68936;
+}
+.milestone-status-pin.scheduled {
+  background: #476856;
+}
+.milestone-status-pin.adjourned {
+  background: #ba5743;
+}
+.milestone-rail-line {
+  width: 2px;
+  flex-grow: 1;
+  background: #dce3d5;
+  margin-top: 4px;
+}
+.milestone-card-body {
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.milestone-card-body:hover {
+  border-color: #bccbb5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+.milestone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.milestone-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.milestone-date-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.milestone-stage-tag {
+  font-size: 11px;
+  font-weight: 500;
+  background: #eef3ea;
+  color: #385642;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.milestone-case-tag {
+  font-size: 11px;
+  color: var(--muted);
+}
+.milestone-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.milestone-title:hover {
+  color: var(--green);
+}
+.milestone-courtroom {
+  margin-bottom: 4px;
+}
+.milestone-expanded-details {
+  border-top: 1px solid #f0f2eb;
+  padding-top: 12px;
+}
+.milestone-desc {
+  line-height: 1.6;
+  color: #3f4e42;
+}
+.milestone-notes-callout {
+  background: #f7f9f4;
+  border-left: 3px solid #8e9e80;
+  padding: 8px 12px;
+  border-radius: 0 4px 4px 0;
+}
+.linked-record-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  background: #f0f4ea;
+  color: #35503e;
+  border: 1px solid #d8e2d2;
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+/* Case Diary Feed */
+.diary-entries-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.diary-entry-card {
+  padding: 18px 22px;
+}
+.diary-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.diary-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.diary-date-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.diary-entry-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.diary-entry-title:hover {
+  color: var(--green);
+}
+.diary-content-text {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #38493d;
+  white-space: pre-line;
+}
+.diary-content-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.diary-entry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #edf2e8;
+  color: #36503c;
+  border: 1px solid #dbe4d5;
+  border-radius: 12px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.tag-chip:hover,
+.tag-chip.active {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+.tag-chips-feed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.tag-chip-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tag-chip-btn.selected {
+  background: #edf1e4;
+  color: #49643e;
+  border-color: #dfe7d3;
+  font-weight: 600;
+}
+.tag-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  color: var(--amber);
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.diary-entry-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #f1f3ec;
+  padding-top: 10px;
+}
+.synthetic-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #7b8873;
+  background: #f4f6f0;
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+.form-error-msg {
+  display: block;
+  font-size: 11px;
+  color: #c0392b;
+  margin-top: 4px;
+}
+
+/* Judicial Bench Styles */
+.current-bench-card {
+  border-left: 4px solid var(--green);
+  background: #fbfdf9;
+  padding: 22px;
+}
+.current-bench-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #e8f0e5;
+  color: var(--green);
+}
+.bench-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+  border-top: 1px solid #edf1e7;
+  padding-top: 16px;
+}
+.bench-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.bench-meta-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.bench-meta-value {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.bench-notes-box {
+  background: #f5f8f1;
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+.historical-bench-panel {
+  padding: 20px;
+}
+.historical-bench-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+.historical-bench-row {
+  border-bottom: 1px solid #edf1e7;
+  padding-bottom: 14px;
+}
+.historical-bench-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.historical-bench-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.historical-bench-header h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+.historical-bench-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 6px;
+  color: #4b5d4f;
+}
+.synthetic-mini-label {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.compact-expand-btn {
+  padding: 4px;
+  color: var(--muted);
+}
+.compact-btn {
+  padding: 4px;
+  color: var(--muted);
+}
+.compact-btn:hover {
+  color: var(--ink);
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.filter-group-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 55px;
+}
+

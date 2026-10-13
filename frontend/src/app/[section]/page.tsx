@@ -11,6 +11,8 @@ export default async function Page({
     ![
       "dashboard",
       "cases",
+      "timeline",
+      "diary",
       "orders",
       "payments",
       "documents",
