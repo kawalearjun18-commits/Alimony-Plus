@@ -74,6 +74,8 @@ type Context = {
   ) => Promise<void>;
   addMilestone: (milestone: Omit<MilestoneEvent, "id">) => void;
   addCalendarEvent: (event: Omit<CalendarEvent, "id">) => void;
+  updateCalendarEvent: (id: number, patch: Partial<CalendarEvent>) => void;
+  deleteCalendarEvent: (id: number) => void;
   addBenchAssignment: (bench: Omit<BenchAssignment, "id">) => void;
   addDiaryEntry: (entry: Omit<CaseDiaryEntry, "id" | "updatedAt">) => void;
   updateDiaryEntry: (id: number, patch: Partial<CaseDiaryEntry>) => void;
@@ -83,8 +85,12 @@ type Context = {
     id: number,
     status: LegalSubmission["status"],
   ) => void;
+  updateSubmission: (id: number, patch: Partial<LegalSubmission>) => void;
+  deleteSubmission: (id: number) => void;
   addActionItem: (item: Omit<ActionItem, "id">) => void;
   toggleActionItem: (id: number) => void;
+  updateActionItem: (id: number, patch: Partial<ActionItem>) => void;
+  deleteActionItem: (id: number) => void;
   markNotificationRead: (id: number) => void;
   markAllNotificationsRead: () => void;
   updateNotificationPreferences: (
@@ -239,6 +245,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Calendar event added in-memory. Case service backend persistence is not yet available.",
     );
   }
+  function updateCalendarEvent(id: number, patch: Partial<CalendarEvent>) {
+    setData((prev) => ({
+      ...prev,
+      calendarEvents: prev.calendarEvents.map((e) =>
+        e.id === id ? { ...e, ...patch } : e,
+      ),
+    }));
+    setNotice("Calendar event updated.");
+  }
+  function deleteCalendarEvent(id: number) {
+    setData((prev) => ({
+      ...prev,
+      calendarEvents: prev.calendarEvents.filter((e) => e.id !== id),
+    }));
+    setNotice("Calendar event removed.");
+  }
   function addBenchAssignment(bench: Omit<BenchAssignment, "id">) {
     const record: BenchAssignment = { ...bench, id: Date.now() };
     setData((prev) => ({
@@ -313,6 +335,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
     setNotice("Submission status updated.");
   }
+  function updateSubmission(id: number, patch: Partial<LegalSubmission>) {
+    setData((prev) => ({
+      ...prev,
+      submissions: prev.submissions.map((s) =>
+        s.id === id ? { ...s, ...patch } : s,
+      ),
+    }));
+    setNotice("Legal submission updated.");
+  }
+  function deleteSubmission(id: number) {
+    setData((prev) => ({
+      ...prev,
+      submissions: prev.submissions.filter((s) => s.id !== id),
+    }));
+    setNotice("Submission removed.");
+  }
   function addActionItem(item: Omit<ActionItem, "id">) {
     const record: ActionItem = { ...item, id: Date.now() };
     setData((prev) => ({
@@ -339,6 +377,22 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           : item,
       ),
     }));
+  }
+  function updateActionItem(id: number, patch: Partial<ActionItem>) {
+    setData((prev) => ({
+      ...prev,
+      actionItems: prev.actionItems.map((item) =>
+        item.id === id ? { ...item, ...patch } : item,
+      ),
+    }));
+    setNotice("Action item updated.");
+  }
+  function deleteActionItem(id: number) {
+    setData((prev) => ({
+      ...prev,
+      actionItems: prev.actionItems.filter((item) => item.id !== id),
+    }));
+    setNotice("Action item removed.");
   }
   function markNotificationRead(id: number) {
     setData((prev) => ({
@@ -387,14 +441,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         create,
         addMilestone,
         addCalendarEvent,
+        updateCalendarEvent,
+        deleteCalendarEvent,
         addBenchAssignment,
         addDiaryEntry,
         updateDiaryEntry,
         deleteDiaryEntry,
         addSubmission,
         updateSubmissionStatus,
+        updateSubmission,
+        deleteSubmission,
         addActionItem,
         toggleActionItem,
+        updateActionItem,
+        deleteActionItem,
         markNotificationRead,
         markAllNotificationsRead,
         updateNotificationPreferences,
