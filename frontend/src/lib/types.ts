@@ -99,7 +99,8 @@ export type CalendarEventStatus =
   | "Scheduled"
   | "Completed"
   | "Adjourned"
-  | "Pending";
+  | "Pending"
+  | "Cancelled";
 export type CalendarEvent = {
   id: number;
   caseId: number;
@@ -209,11 +210,29 @@ export type NotificationItem = {
   linkSection?: string;
 
   /**
-   * Identifies reminders generated dynamically from calendar events
-   * and submission deadlines. Used to distinguish them from
+   * Identifies reminders generated dynamically from calendar events,
+   * submissions, and action items. Used to distinguish them from
    * regular notifications without relying on numeric ID ranges.
    */
   isGeneratedReminder?: boolean;
+
+  /**
+   * Stable, human-readable composite key for generated reminders.
+   * Format: `{type}:{caseId}:{sourceId}:{date}`
+   * Examples:
+   *   "hearing:10:1:2026-10-14"
+   *   "summons:10:2:2026-10-20"
+   *   "order-deadline:10:3:2026-10-18"
+   *   "submission-deadline:10:5:2026-10-15"
+   *   "action-upcoming:10:7:2026-10-16"
+   *   "action-today:10:8:2026-10-14"
+   *   "action-overdue:10:9:2026-10-10"
+   *
+   * Role: deduplication and read-state tracking across re-renders.
+   * The numeric `id` is a hash of this key so that existing components
+   * that expect a numeric id remain compatible.
+   */
+  reminderKey?: string;
 };
 export type NotificationPreferences = {
   hearingReminders: boolean;

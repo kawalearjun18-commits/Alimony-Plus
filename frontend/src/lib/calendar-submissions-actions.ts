@@ -25,6 +25,7 @@ export const CALENDAR_EVENT_STATUSES: CalendarEventStatus[] = [
   "Completed",
   "Adjourned",
   "Pending",
+  "Cancelled",
 ];
 
 export function sortCalendarEvents(

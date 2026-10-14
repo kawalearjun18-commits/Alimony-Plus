@@ -224,6 +224,8 @@ export function CourtCalendar() {
         return "amber";
       case "Pending":
         return "amber";
+      case "Cancelled":
+        return "neutral";
       default:
         return "";
     }

@@ -95,9 +95,15 @@ type Context = {
   deleteActionItem: (id: number) => void;
   markNotificationRead: (id: number) => void;
   markAllNotificationsRead: () => void;
-  readReminderIds: Set<number>;
-  markReminderRead: (id: number) => void;
-  markAllRemindersRead: (ids: number[]) => void;
+  /**
+   * Set of reminderKey strings for reminders the user has marked read.
+   * Keyed by reminderKey (stable string composite key) rather than numeric id
+   * to survive re-renders where ids may be recomputed from the hash.
+   * This Set lives in React state only — it is lost on page reload.
+   */
+  readReminderIds: Set<string>;
+  markReminderRead: (key: string) => void;
+  markAllRemindersRead: (keys: string[]) => void;
   updateNotificationPreferences: (
     patch: Partial<NotificationPreferences>,
   ) => void;
@@ -108,8 +114,8 @@ const Store = createContext<Context | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const requestGeneration = useRef(0);
   const [data, setData] = useState<Workspace>(demoWorkspace);
-  const [readReminderIds, setReadReminderIds] = useState<Set<number>>(
-    () => new Set<number>(),
+  const [readReminderIds, setReadReminderIds] = useState<Set<string>>(
+    () => new Set<string>(),
   );
   const [demo, setDemo] = useState(true);
   const [name, setName] = useState("Meera");
@@ -166,7 +172,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setDemo(false);
     setName(userName);
     setData(empty());
-    setReadReminderIds(new Set<number>());
+    setReadReminderIds(new Set<string>());
     setSelectedCase(0);
     await loadLive();
   }
@@ -177,7 +183,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setDemo(true);
     setName("Meera");
     setData(demoWorkspace());
-    setReadReminderIds(new Set<number>());
+    setReadReminderIds(new Set<string>());
     setSelectedCase(0);
     setError("");
     setNotice("Demo reset. All records are synthetic.");
@@ -200,7 +206,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           requestGeneration.current++;
           setLoading(false);
           setData(empty());
-          setReadReminderIds(new Set<number>());
+          setReadReminderIds(new Set<string>());
           setDemo(true);
           setName("Guest");
           setNotice("Your session was cleared after inactivity.");
@@ -453,19 +459,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }));
   }
 
-  function markReminderRead(id: number) {
+  function markReminderRead(key: string) {
     setReadReminderIds((previous) => {
       const next = new Set(previous);
-      next.add(id);
+      next.add(key);
       return next;
     });
   }
 
-  function markAllRemindersRead(ids: number[]) {
+  function markAllRemindersRead(keys: string[]) {
     setReadReminderIds((previous) => {
       const next = new Set(previous);
-      for (const id of ids) {
-        next.add(id);
+      for (const key of keys) {
+        next.add(key);
       }
       return next;
     });

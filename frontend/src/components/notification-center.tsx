@@ -65,12 +65,20 @@ export function NotificationBell() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Track notifications already attempted during this mounted session.
-  const sentDesktopReminderIds = useRef<Set<number>>(new Set());
+  // Track reminder keys already attempted during this mounted session.
+  // Using reminderKey (string) instead of numeric id provides better
+  // deduplication — remounted components that share the same reminderKey
+  // will not fire a duplicate desktop notification if the key was already
+  // sent in this page session.
+  const sentDesktopReminderKeys = useRef<Set<string>>(new Set());
 
   const allNotifications = useMemo(() => {
-    const existingIds = new Set(
-      data.notifications.map((notification) => notification.id),
+    // Build the exclusion set from reminderKeys of already-stored notifications.
+    // Any generated reminder whose key matches an existing key is skipped.
+    const existingKeys = new Set(
+      data.notifications
+        .filter((n) => n.reminderKey)
+        .map((n) => n.reminderKey as string),
     );
 
     const reminders = generateReminders(
@@ -79,14 +87,19 @@ export function NotificationBell() {
       data.actionItems,
       data.notificationPreferences,
       asOf,
-      existingIds,
+      existingKeys,
     );
 
     return [
       ...data.notifications,
       ...reminders.map((reminder) => ({
         ...reminder,
-        read: reminder.read || readReminderIds.has(reminder.id),
+        // Merge read state: check by reminderKey when available, else numeric id.
+        read:
+          reminder.read ||
+          (reminder.reminderKey
+            ? readReminderIds.has(reminder.reminderKey)
+            : readReminderIds.has(String(reminder.id))),
       })),
     ];
   }, [
@@ -112,14 +125,18 @@ export function NotificationBell() {
       (notification) =>
         notification.isGeneratedReminder === true &&
         !notification.read &&
-        !readReminderIds.has(notification.id),
+        !(notification.reminderKey
+          ? readReminderIds.has(notification.reminderKey)
+          : readReminderIds.has(String(notification.id))),
     );
 
     for (const notification of eligibleReminders) {
-      if (sentDesktopReminderIds.current.has(notification.id)) continue;
+      // Use reminderKey as the deduplication handle when available.
+      const dedupeKey = notification.reminderKey ?? String(notification.id);
+      if (sentDesktopReminderKeys.current.has(dedupeKey)) continue;
 
       // Prevent repeated attempts during React effect reruns.
-      sentDesktopReminderIds.current.add(notification.id);
+      sentDesktopReminderKeys.current.add(dedupeKey);
 
       showDesktopNotification(
         notification,
@@ -187,6 +204,7 @@ export function NotificationBell() {
         <NotificationPanel
           ref={panelRef}
           notifications={allNotifications}
+          discreetMode={data.notificationPreferences.discreetMode}
           onClose={() => {
             setOpen(false);
             buttonRef.current?.focus();
@@ -196,14 +214,16 @@ export function NotificationBell() {
     </div>
   );
 }
-
 type PanelProps = {
   notifications: NotificationItem[];
   onClose: () => void;
+  discreetMode: boolean;
 };
-
 const NotificationPanel = forwardRef<HTMLDivElement, PanelProps>(
-  function NotificationPanel({ notifications, onClose }, ref) {
+  function NotificationPanel(
+    { notifications, onClose, discreetMode },
+    ref,
+  ) {
     const {
       markNotificationRead,
       markAllNotificationsRead,
@@ -219,13 +239,17 @@ const NotificationPanel = forwardRef<HTMLDivElement, PanelProps>(
     function handleMarkAllRead() {
       markAllNotificationsRead();
 
-      const generatedReminderIds = notifications
+      // Collect reminderKey strings (primary) or fall back to String(id)
+      // for any generated reminder that may not carry a key.
+      const generatedReminderKeys = notifications
         .filter(
           (notification) => notification.isGeneratedReminder === true,
         )
-        .map((notification) => notification.id);
+        .map((notification) =>
+          notification.reminderKey ?? String(notification.id),
+        );
 
-      markAllRemindersRead(generatedReminderIds);
+      markAllRemindersRead(generatedReminderKeys);
     }
 
     function handleMarkRead(notification: NotificationItem) {
@@ -233,7 +257,8 @@ const NotificationPanel = forwardRef<HTMLDivElement, PanelProps>(
         notification.isGeneratedReminder === true;
 
       if (isGeneratedReminder) {
-        markReminderRead(notification.id);
+        // Prefer reminderKey for stable identity; fall back to String(id).
+        markReminderRead(notification.reminderKey ?? String(notification.id));
       } else {
         markNotificationRead(notification.id);
       }
@@ -319,8 +344,13 @@ const NotificationPanel = forwardRef<HTMLDivElement, PanelProps>(
           {filtered.length > 0 ? (
             filtered.map((notification) => (
               <NotificationRow
-                key={`${notification.category}-${notification.id}`}
+                key={
+                  notification.isGeneratedReminder && notification.reminderKey
+                    ? `reminder:${notification.reminderKey}`
+                    : `notification:${notification.category}:${notification.id}`
+                }
                 notification={notification}
+                discreetMode={discreetMode}
                 onMarkRead={() => handleMarkRead(notification)}
                 onClose={onClose}
               />
@@ -354,13 +384,17 @@ function NotificationRow({
   notification,
   onMarkRead,
   onClose,
+  discreetMode,
 }: {
   notification: NotificationItem;
   onMarkRead: () => void;
   onClose: () => void;
+  discreetMode: boolean;
 }) {
   const Icon = categoryIcons[notification.category] || Bell;
-  const label = categoryLabels[notification.category] || "Notification";
+  const label = discreetMode
+    ? "Notification"
+    : categoryLabels[notification.category] || "Notification";
 
   return (
     <div
@@ -378,8 +412,14 @@ function NotificationRow({
           </span>
         </div>
 
-        <strong>{notification.title}</strong>
-        <p>{notification.message}</p>
+        <strong>
+          {discreetMode ? "Notification" : notification.title}
+        </strong>
+        <p>
+          {discreetMode
+            ? "You have a new notification."
+            : notification.message}
+        </p>
 
         <div className="notification-row-actions">
           {notification.linkSection && (
@@ -397,7 +437,11 @@ function NotificationRow({
               type="button"
               className="text-link compact"
               onClick={onMarkRead}
-              aria-label={`Mark "${notification.title}" as read`}
+              aria-label={
+                discreetMode
+                  ? "Mark notification as read"
+                  : `Mark "${notification.title}" as read`
+              }
             >
               <Check size={13} />
               Mark read
