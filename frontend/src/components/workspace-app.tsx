@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CnrLookup } from "./cnr-lookup";
+
 import {
   LayoutDashboard,
   FolderHeart,
@@ -53,6 +55,7 @@ const nav = [
   { id: "payments", title: "Maintenance", icon: Wallet },
   { id: "documents", title: "Documents", icon: Files },
   { id: "calculator", title: "Planning calculator", icon: Calculator },
+  { id: "cnr", title: "CNR Lookup", icon: Search },
 ];
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
@@ -61,6 +64,7 @@ const pageTitles: Record<string, string> = {
   payments: "Maintenance",
   documents: "Documents",
   calculator: "Planning calculator",
+  cnr: "CNR Lookup",
   "data-review": "Data workspace",
   help: "Help & legal aid",
   settings: "Settings",
@@ -1183,6 +1187,7 @@ export function WorkspaceApp({ section }: { section: string }) {
             </>
           )}
           {section === "calculator" && <CalculatorView />}
+          {section === "cnr" && <CnrLookup />}
           {section === "data-review" && (
             <DataReviewView
               onAdd={() => open("source")}
