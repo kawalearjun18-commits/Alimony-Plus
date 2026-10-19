@@ -11,6 +11,7 @@ import {
   Calculator,
   Database,
   CircleHelp,
+  Landmark,
   Settings,
   ChevronDown,
   ArrowUpRight,
@@ -54,6 +55,7 @@ const nav = [
   { id: "payments", title: "Maintenance", icon: Wallet },
   { id: "documents", title: "Documents", icon: Files },
   { id: "calculator", title: "Planning calculator", icon: Calculator },
+  { id: "legal-aid", title: "Legal aid hub", icon: Landmark },
 ];
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
