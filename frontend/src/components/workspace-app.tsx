@@ -45,6 +45,7 @@ import {
   LoginView,
   SettingsView,
 } from "./workspace-extras";
+import { LegalAidHub } from "./legal-aid-hub";
 
 const nav = [
   { id: "dashboard", title: "Overview", icon: LayoutDashboard },
@@ -63,6 +64,7 @@ const pageTitles: Record<string, string> = {
   calculator: "Planning calculator",
   "data-review": "Data workspace",
   help: "Help & legal aid",
+  "legal-aid": "Legal aid hub",
   settings: "Settings",
 };
 
@@ -1192,6 +1194,7 @@ export function WorkspaceApp({ section }: { section: string }) {
               }}
             />
           )}
+         {section === "legal-aid" && <LegalAidHub />}
           {section === "help" && <HelpView />}
           {section === "settings" && <SettingsView />}
           <footer className="footer">

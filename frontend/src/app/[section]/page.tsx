@@ -17,6 +17,7 @@ export default async function Page({
       "calculator",
       "data-review",
       "help",
+      "legal-aid",
       "settings",
       "login",
     ].includes(section)
