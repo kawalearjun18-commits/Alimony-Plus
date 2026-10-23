@@ -50,6 +50,8 @@ export type Hearing = {
   date: string;
   title: string;
   location: string;
+  eventType?: string;
+  milestone?: string;
 };
 export type DocumentRecord = {
   id: number;

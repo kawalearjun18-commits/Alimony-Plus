@@ -40,6 +40,8 @@ type Context = {
   setNotice: (v: string) => void;
   selectedCase: number;
   setSelectedCase: (v: number) => void;
+  caseNotes: Record<number, string>;
+  setCaseNote: (caseId: number, value: string) => void;
   setData: React.Dispatch<React.SetStateAction<Workspace>>;
   refresh: () => Promise<void>;
   enterLive: (name: string) => Promise<void>;
@@ -60,6 +62,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [selectedCase, setSelectedCase] = useState(0);
+  const [caseNotes, setCaseNotes] = useState<Record<number, string>>({});
+  const setCaseNote = useCallback((caseId: number, value: string) => {
+    setCaseNotes((prev) => ({ ...prev, [caseId]: value }));
+  }, []);
   const router = useRouter();
   const loadLive = useCallback(async () => {
     const generation = ++requestGeneration.current;
@@ -201,6 +207,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setNotice,
         selectedCase,
         setSelectedCase,
+        caseNotes,
+        setCaseNote,
         setData,
         refresh: loadLive,
         enterLive,
