@@ -43,6 +43,8 @@ type Context = {
   caseNotes: Record<number, string>;
   setCaseNote: (caseId: number, value: string) => void;
   setData: React.Dispatch<React.SetStateAction<Workspace>>;
+  caseNotes: Record<number, string>;
+  setCaseNote: (caseId: number, note: string) => void;
   refresh: () => Promise<void>;
   enterLive: (name: string) => Promise<void>;
   resetDemo: () => void;
@@ -63,10 +65,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState("");
   const [selectedCase, setSelectedCase] = useState(0);
   const [caseNotes, setCaseNotes] = useState<Record<number, string>>({});
-  const setCaseNote = useCallback((caseId: number, value: string) => {
-    setCaseNotes((prev) => ({ ...prev, [caseId]: value }));
-  }, []);
   const router = useRouter();
+  const setCaseNote = useCallback((caseId: number, note: string) => {
+    if (!caseId || typeof caseId !== "number") {
+      throw new Error("Invalid case ID");
+    }
+    setCaseNotes((prev) => ({
+      ...prev,
+      [caseId]: note,
+    }));
+  }, []);
   const loadLive = useCallback(async () => {
     const generation = ++requestGeneration.current;
     setLoading(true);
@@ -126,6 +134,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setName(userName);
     setData(empty());
     setSelectedCase(0);
+    setCaseNotes({});
     await loadLive();
   }
   function resetDemo() {
@@ -135,6 +144,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setName("Meera");
     setData(demoWorkspace());
     setSelectedCase(0);
+    setCaseNotes({});
     setError("");
     setNotice("Demo reset. All records are synthetic.");
   }
@@ -154,6 +164,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           requestGeneration.current++;
           setLoading(false);
           setData(empty());
+          setCaseNotes({});
           setDemo(true);
           setName("Guest");
           setNotice("Your session was cleared after inactivity.");
@@ -210,6 +221,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         caseNotes,
         setCaseNote,
         setData,
+        caseNotes,
+        setCaseNote,
         refresh: loadLive,
         enterLive,
         resetDemo,

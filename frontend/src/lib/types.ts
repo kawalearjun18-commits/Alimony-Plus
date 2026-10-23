@@ -44,13 +44,14 @@ export type ProofInfo = {
   mimeType: string;
   sha256: string;
 };
+export type HearingEventType = "hearing" | "summons" | "milestone";
 export type Hearing = {
   id: number;
   caseId: number;
   date: string;
   title: string;
   location: string;
-  eventType?: string;
+  eventType?: HearingEventType;
   milestone?: string;
 };
 export type DocumentRecord = {

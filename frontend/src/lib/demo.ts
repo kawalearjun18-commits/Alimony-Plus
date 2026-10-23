@@ -97,6 +97,7 @@ export function demoWorkspace(): Workspace {
         date: "2026-10-16",
         title: "Maintenance review hearing",
         location: "Family Court, New Delhi · Courtroom 3",
+        eventType: "hearing",
       },
       {
         id: 2,
@@ -104,6 +105,16 @@ export function demoWorkspace(): Workspace {
         date: "2026-10-23",
         title: "Document review",
         location: "Meeting with legal-aid counsel",
+        eventType: "milestone",
+        milestone: "Legal consultation",
+      },
+      {
+        id: 3,
+        caseId: 1,
+        date: "2026-11-05",
+        title: "Summons returnable date",
+        location: "Family Court, New Delhi · Courtroom 3",
+        eventType: "summons",
       },
     ],
     documents: [
