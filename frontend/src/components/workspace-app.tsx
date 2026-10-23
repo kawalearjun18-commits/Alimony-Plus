@@ -6,6 +6,8 @@ import { CoolingPeriodView } from "./cooling-period-view";
 import { WaiverApplicationView } from "@/components/waiver-application-view";
 import { SettlementChecklistView } from "@/components/settlement-checklist-view";
 import { JointPetitionStudio } from "@/components/joint-petition-studio";
+import { CnrLookup } from "./cnr-lookup";
+
 import {
   LayoutDashboard,
   FolderHeart,
@@ -84,6 +86,7 @@ const nav = [
   { id: "waiver-application", title: "Waiver application", icon: ShieldCheck },
   { id: "settlement-checklist", title: "Settlement checklist", icon: Files },
   { id: "joint-petition", title: "Joint-petition studio", icon: ShieldCheck },
+  { id: "cnr", title: "CNR Lookup", icon: Search },
 ];
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
@@ -95,6 +98,7 @@ const pageTitles: Record<string, string> = {
   documents: "Documents",
   calculator: "Planning calculator",
   assistant: "AI Legal Assistant",  
+  cnr: "CNR Lookup",
   "data-review": "Data workspace",
   help: "Help & legal aid",
   settings: "Settings",
@@ -1361,6 +1365,7 @@ export function WorkspaceApp({ section }: { section: string }) {
           {section === "waiver-application" && <WaiverApplicationView />}
           {section === "settlement-checklist" && <SettlementChecklistView />}
           {section === "joint-petition" && <JointPetitionStudio />}
+          {section === "cnr" && <CnrLookup />}
           {section === "data-review" && (
             <DataReviewView
               onAdd={() => open("source")}
