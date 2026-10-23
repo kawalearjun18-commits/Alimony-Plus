@@ -22,6 +22,12 @@ export default async function Page({
       "help",
       "settings",
       "login",
+      "cooling-period",
+      "calculator",
+      "waiver-application",
+      "settlement-checklist",
+      "joint-petition"
+
     ].includes(section)
   )
     notFound();
