@@ -34,6 +34,7 @@ import {
   BookOpen,
   ClipboardList,
   Compass,
+  MessageSquare,
 } from "lucide-react";
 import { useWorkspace } from "./workspace-provider";
 import { Badge, Empty, PageHeading, ExternalLink } from "./ui";
@@ -63,6 +64,7 @@ import {
   LoginView,
   SettingsView,
 } from "./workspace-extras";
+import { ChatView } from "./chat/chat-view";
 
 const nav = [
   { id: "dashboard", title: "Overview", icon: LayoutDashboard },
@@ -73,6 +75,7 @@ const nav = [
   { id: "payments", title: "Maintenance", icon: Wallet },
   { id: "documents", title: "Documents", icon: Files },
   { id: "calculator", title: "Planning calculator", icon: Calculator },
+  { id: "assistant", title: "AI Legal Assistant", icon: MessageSquare },
 ];
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
@@ -83,6 +86,7 @@ const pageTitles: Record<string, string> = {
   payments: "Maintenance",
   documents: "Documents",
   calculator: "Planning calculator",
+  assistant: "AI Legal Assistant",  
   "data-review": "Data workspace",
   help: "Help & legal aid",
   settings: "Settings",
@@ -1340,6 +1344,7 @@ export function WorkspaceApp({ section }: { section: string }) {
           {section === "intake" && <IntakeView />}
           {section === "navigator" && <NavigatorView />}
           {section === "calculator" && <CalculatorView />}
+          {section === "assistant" && <ChatView />}
           {section === "data-review" && (
             <DataReviewView
               onAdd={() => open("source")}
