@@ -14,6 +14,7 @@ const sections = [
   "calculator",
   "assistant",
   "cnr",
+  "settlement",
   "data-review",
   "help",
   "settings",

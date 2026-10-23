@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -71,6 +71,7 @@ import {
   SettingsView,
 } from "./workspace-extras";
 import { ChatView } from "./chat/chat-view";
+import SettlementStudio from "./settlement/settlement-studio";
 
 const nav = [
   { id: "dashboard", title: "Overview", icon: LayoutDashboard },
@@ -87,6 +88,7 @@ const nav = [
   { id: "settlement-checklist", title: "Settlement checklist", icon: Files },
   { id: "joint-petition", title: "Joint-petition studio", icon: ShieldCheck },
   { id: "cnr", title: "CNR Lookup", icon: Search },
+  { id: "settlement", title: "Settlement Studio", icon: Scale },
 ];
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
@@ -99,6 +101,7 @@ const pageTitles: Record<string, string> = {
   calculator: "Planning calculator",
   assistant: "AI Legal Assistant",  
   cnr: "CNR Lookup",
+  settlement: "Settlement Studio",
   "data-review": "Data workspace",
   help: "Help & legal aid",
   settings: "Settings",
@@ -1366,6 +1369,7 @@ export function WorkspaceApp({ section }: { section: string }) {
           {section === "settlement-checklist" && <SettlementChecklistView />}
           {section === "joint-petition" && <JointPetitionStudio />}
           {section === "cnr" && <CnrLookup />}
+          {section === "settlement" && <SettlementStudio />}
           {section === "data-review" && (
             <DataReviewView
               onAdd={() => open("source")}
