@@ -17,6 +17,7 @@ import {
   Calculator,
   Database,
   CircleHelp,
+  Landmark,
   Settings,
   ChevronDown,
   ArrowUpRight,
@@ -72,6 +73,7 @@ import {
 } from "./workspace-extras";
 import { ChatView } from "./chat/chat-view";
 import SettlementStudio from "./settlement/settlement-studio";
+import { LegalAidHub } from "./legal-aid-hub";
 
 const nav = [
   { id: "dashboard", title: "Overview", icon: LayoutDashboard },
@@ -89,6 +91,7 @@ const nav = [
   { id: "joint-petition", title: "Joint-petition studio", icon: ShieldCheck },
   { id: "cnr", title: "CNR Lookup", icon: Search },
   { id: "settlement", title: "Settlement Studio", icon: Scale },
+  { id: "legal-aid", title: "Legal aid hub", icon: Landmark },
 ];
 const pageTitles: Record<string, string> = {
   dashboard: "Overview",
@@ -104,6 +107,7 @@ const pageTitles: Record<string, string> = {
   settlement: "Settlement Studio",
   "data-review": "Data workspace",
   help: "Help & legal aid",
+  "legal-aid": "Legal aid hub",
   settings: "Settings",
   "cooling-period": "Cooling period tracker",
   "waiver-application": "Waiver application",
@@ -1379,6 +1383,7 @@ export function WorkspaceApp({ section }: { section: string }) {
               }}
             />
           )}
+         {section === "legal-aid" && <LegalAidHub />}
           {section === "help" && <HelpView />}
           {section === "settings" && <SettingsView />}
           <footer className="footer">

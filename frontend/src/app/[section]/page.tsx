@@ -17,6 +17,7 @@ const sections = [
   "settlement",
   "data-review",
   "help",
+  "legal-aid",
   "settings",
   "login",
   "cooling-period",
