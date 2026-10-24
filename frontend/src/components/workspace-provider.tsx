@@ -46,8 +46,6 @@ type Context = {
   caseNotes: Record<number, string>;
   setCaseNote: (caseId: number, value: string) => void;
   setData: React.Dispatch<React.SetStateAction<Workspace>>;
-  caseNotes: Record<number, string>;
-  setCaseNote: (caseId: number, note: string) => void;
   refresh: () => Promise<void>;
   enterLive: (name: string) => Promise<void>;
   resetDemo: () => void;
@@ -288,8 +286,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         caseNotes,
         setCaseNote,
         setData,
-        caseNotes,
-        setCaseNote,
         refresh: loadLive,
         enterLive,
         resetDemo,
