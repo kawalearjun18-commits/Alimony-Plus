@@ -84,6 +84,8 @@ export type Workspace = {
   hearings: Hearing[];
   documents: DocumentRecord[];
   sources: SourceRecord[];
+  notifications: NotificationItem[];
+  notificationPreferences: NotificationPreferences;
 };
 export type LedgerRow = {
   orderId: number;
@@ -95,3 +97,134 @@ export type LedgerRow = {
   status: "Paid" | "Overdue" | "Partially paid" | "Upcoming";
   credit: number;
 };
+export type CalendarEventType =
+  | "Hearing"
+  | "Summons return"
+  | "Order deadline";
+
+export type CalendarEventStatus =
+  | "Scheduled"
+  | "Completed"
+  | "Adjourned"
+  | "Pending"
+  | "Cancelled";
+
+export type CalendarEvent = {
+  id: number;
+  caseId: number;
+  date: string;
+  time?: string;
+  title: string;
+  eventType: CalendarEventType;
+  location?: string;
+  description?: string;
+  status: CalendarEventStatus;
+  reminderDays?: number;
+};
+
+export type SubmissionType =
+  | "Petition"
+  | "Interim application"
+  | "Affidavit of assets"
+  | "Written statement"
+  | "Rejoinder"
+  | "Evidence affidavit"
+  | "Written arguments";
+
+export type SubmissionStatus =
+  | "Drafted"
+  | "Filed"
+  | "Served"
+  | "Objected"
+  | "Taken on record";
+
+export type LegalSubmission = {
+  id: number;
+  caseId: number;
+  proceedingId?: number;
+  title: string;
+  submissionType: SubmissionType;
+  filingDate: string;
+  filedBy: "Applicant" | "Respondent" | "Court";
+  courtFilingNumber?: string;
+  status: SubmissionStatus;
+  documentId?: number;
+  responseDeadline?: string;
+  notes?: string;
+};
+
+export type ActionItemPriority = "High" | "Medium" | "Normal";
+
+export type ActionItemCategory =
+  | "Document prep"
+  | "Affidavit filing"
+  | "Court appearance"
+  | "Compliance"
+  | "Other";
+
+export type ActionItem = {
+  id: number;
+  caseId: number;
+  title: string;
+  description?: string;
+  category: ActionItemCategory;
+  dueDate: string;
+  priority: ActionItemPriority;
+  completed: boolean;
+  completedAt?: string;
+  linkedCalendarEventId?: number;
+};
+
+export type NotificationCategory =
+  | "Hearing"
+  | "Summons"
+  | "Deadline"
+  | "Compliance"
+  | "System";
+
+export type NotificationItem = {
+  id: number;
+  caseId?: number;
+  title: string;
+  message: string;
+  discreetMessage?: string;
+  timestamp: string;
+  category: NotificationCategory;
+  read: boolean;
+  linkSection?: string;
+
+  /**
+   * Identifies reminders generated dynamically from calendar events,
+   * submissions, and action items. Used to distinguish them from
+   * regular notifications without relying on numeric ID ranges.
+   */
+  isGeneratedReminder?: boolean;
+
+  /**
+   * Stable, human-readable composite key for generated reminders.
+   * Format: `{type}:{caseId}:{sourceId}:{date}`
+   * Examples:
+   *   "hearing:10:1:2026-10-14"
+   *   "summons:10:2:2026-10-20"
+   *   "order-deadline:10:3:2026-10-18"
+   *   "submission-deadline:10:5:2026-10-15"
+   *   "action-upcoming:10:7:2026-10-16"
+   *   "action-today:10:8:2026-10-14"
+   *   "action-overdue:10:9:2026-10-10"
+   *
+   * Role: deduplication and read-state tracking across re-renders.
+   * The numeric `id` is a hash of this key so that existing components
+   * that expect a numeric id remain compatible.
+   */
+  reminderKey?: string;
+};
+
+export type NotificationPreferences = {
+  hearingReminders: boolean;
+  summonsAlerts: boolean;
+  deadlineAlerts: boolean;
+  leadDays: number;
+  desktopPushEnabled: boolean;
+  discreetMode: boolean;
+};
+

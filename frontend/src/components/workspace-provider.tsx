@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { demoWorkspace, DEMO_DATE } from "@/lib/demo";
+import { demoWorkspace, DEMO_DATE, defaultPreferences } from "@/lib/demo";
 import { today } from "@/lib/ledger";
 import type {
   Workspace,
@@ -19,6 +19,7 @@ import type {
   Order,
   Payment,
   DocumentRecord,
+  NotificationPreferences,
 } from "@/lib/types";
 const empty = (): Workspace => ({
   cases: [],
@@ -28,6 +29,8 @@ const empty = (): Workspace => ({
   hearings: [],
   documents: [],
   sources: [],
+  notifications: [],
+  notificationPreferences: defaultPreferences,
 });
 type Context = {
   data: Workspace;
@@ -53,11 +56,22 @@ type Context = {
     kind: "cases" | "proceedings" | "orders" | "payments",
     body: Record<string, unknown>,
   ) => Promise<void>;
+  markNotificationRead: (id: number) => void;
+  markAllNotificationsRead: () => void;
+  readReminderIds: Set<string>;
+  markReminderRead: (key: string) => void;
+  markAllRemindersRead: (keys: string[]) => void;
+  updateNotificationPreferences: (
+    patch: Partial<NotificationPreferences>,
+  ) => void;
 };
 const Store = createContext<Context | null>(null);
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const requestGeneration = useRef(0);
   const [data, setData] = useState<Workspace>(demoWorkspace);
+  const [readReminderIds, setReadReminderIds] = useState<Set<string>>(
+    () => new Set<string>(),
+  );
   const [demo, setDemo] = useState(true);
   const [name, setName] = useState("Meera");
   const [loading, setLoading] = useState(false);
@@ -205,6 +219,59 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         : "Record saved.",
     );
   }
+
+  function markNotificationRead(id: number) {
+    setData((prev) => ({
+      ...prev,
+      notifications: prev.notifications.map((notification) =>
+        notification.id === id
+          ? { ...notification, read: true }
+          : notification,
+      ),
+    }));
+  }
+
+  function markAllNotificationsRead() {
+    setData((prev) => ({
+      ...prev,
+      notifications: prev.notifications.map((notification) => ({
+        ...notification,
+        read: true,
+      })),
+    }));
+  }
+
+  function markReminderRead(key: string) {
+    setReadReminderIds((previous) => {
+      const next = new Set(previous);
+      next.add(key);
+      return next;
+    });
+  }
+
+  function markAllRemindersRead(keys: string[]) {
+    setReadReminderIds((previous) => {
+      const next = new Set(previous);
+      for (const key of keys) {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  function updateNotificationPreferences(
+    patch: Partial<NotificationPreferences>,
+  ) {
+    setData((prev) => ({
+      ...prev,
+      notificationPreferences: {
+        ...prev.notificationPreferences,
+        ...patch,
+      },
+    }));
+    setNotice("Notification preferences updated.");
+  }
+
   return (
     <Store.Provider
       value={{
@@ -228,6 +295,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         resetDemo,
         logout,
         create,
+        markNotificationRead,
+        markAllNotificationsRead,
+        readReminderIds,
+        markReminderRead,
+        markAllRemindersRead,
+        updateNotificationPreferences,
       }}
     >
       {children}

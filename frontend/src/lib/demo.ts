@@ -1,5 +1,14 @@
-import type { Workspace } from "./types";
+import type { NotificationPreferences, Workspace } from "./types";
 export const DEMO_DATE = "2026-10-09";
+
+export const defaultPreferences: NotificationPreferences = {
+  hearingReminders: true,
+  summonsAlerts: true,
+  deadlineAlerts: true,
+  leadDays: 3,
+  desktopPushEnabled: false,
+  discreetMode: true,
+};
 export function demoWorkspace(): Workspace {
   return {
     cases: [
@@ -171,5 +180,7 @@ export function demoWorkspace(): Workspace {
         certainty: "Unknown",
       },
     ],
+    notifications: [],
+    notificationPreferences: defaultPreferences,
   };
 }

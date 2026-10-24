@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -7,6 +7,7 @@ import { WaiverApplicationView } from "@/components/waiver-application-view";
 import { SettlementChecklistView } from "@/components/settlement-checklist-view";
 import { JointPetitionStudio } from "@/components/joint-petition-studio";
 import { CnrLookup } from "./cnr-lookup";
+import { NotificationBell } from "./notification-center";
 
 import {
   LayoutDashboard,
@@ -382,6 +383,7 @@ export function WorkspaceApp({ section }: { section: string }) {
               <ShieldCheck size={15} />
               {demo ? "Synthetic demo" : "Private workspace"}
             </span>
+            <NotificationBell />
             <button className="button exit-button" onClick={safeExit}>
               <LogOut size={15} />
               Quick exit
